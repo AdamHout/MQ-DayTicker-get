@@ -2,7 +2,7 @@
  * mqremoteget - Demo program to retrieve messages sent from a remote queue
  * 
  * Summary:
- * Console program to 
+ * Retrieve, parse, and display finamcial market indice data
  * 
  * MQ Configuration:
  * +IBM MQ Advanced for Developers on ubuntu machine E6410
@@ -30,7 +30,7 @@
 #include "utils.h"
 
 #define BUF_SIZE 64                                //mqget msg buffer size
-//#define IND_SIZE 5                                //Number of arrays of indices structures
+//#define NBR_IND 5                                //Number of arrays of indices structures
 
 int main(int argc, char **argv)
 {
@@ -59,7 +59,8 @@ int main(int argc, char **argv)
    //Miscellaneous variables
    char msgbuf[BUF_SIZE];                          //Input message buffer
    FILE *pFP;                                      //File handle pointer
-   struct indice indices[IND_SIZE];                //Array of indice structures
+   struct indice indices[NBR_IND];                 //Array of indice structures
+   int idx;                                        //Array index of current indice structure in use
    
    //-------------------------------------------------------
    //Connect to the queue manager
@@ -115,20 +116,38 @@ int main(int argc, char **argv)
    }
    
    //-------------------------------------------------------
-   //
+   //Pull and process market indice data from MQ
    //-------------------------------------------------------
+   dspHdr();                                                                  //Print display headers
+   memset(indices,0x00,NBR_IND * sizeof(struct indice));                      //Init array of indice structures
+   
+   //Setup MQGET options    
    getOpt.Version = MQGMO_CURRENT_VERSION;                                    //Use the most recent version of MQGMO
    getOpt.MatchOptions = MQMO_NONE;                                           //FIFO retreival                                            
    getOpt.Options = MQGMO_WAIT | MQGMO_NO_SYNCPOINT;   
    getOpt.WaitInterval = 10000;                                               //10 second timeout
-   memset(indices,0x00,sizeof(indices[IND_SIZE]));                            //Init array of indice structures
    
    do{
       msgDsc.Encoding = MQENC_NATIVE;                                         
       msgDsc.CodedCharSetId = MQCCSI_Q_MGR;
       MQGET(Hcnx,Hobj,&msgDsc,&getOpt,BUF_SIZE,msgbuf,&msglen,&cmpCde,&resCde);
-      parseCSV(msgbuf,indices);
-      //dspIndice();
+      if (resCde != MQRC_NONE){
+         printf(ESC CSI "10;1H");                                             
+         switch(resCde){
+            case MQRC_NO_MSG_AVAILABLE:
+               puts("No messages on the queue");
+               break;
+            case MQRC_TRUNCATED_MSG_FAILED:
+               puts("Message truncated");
+               break;
+            default:
+               printf("MQGET reason code: %d\n",resCde);
+         }
+      }
+      else{
+         idx = parseCSV(msgbuf,indices);                                      //Parse the next CSV line
+         dspIndice(idx,indices);                                              //Display indice data
+      }
    }while(cmpCde != MQCC_FAILED && resCde == MQRC_NONE);
    
    //-------------------------------------------------------
