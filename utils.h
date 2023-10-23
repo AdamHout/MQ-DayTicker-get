@@ -20,6 +20,7 @@
 #define HME       "H"                               //Set cursor to home position
 #define C01       ";1H"                             //2nd half of cursor position sequence. Line # will be set dynamically
 #define C44       ";44H"                            //2nd half of cursor position sequence. Line # will be set dynamically
+#define DEC       "?25l"                            //Hide the cursor
 //Escape sequence foreground colors
 #define RED       "31m"
 #define GREEN     "32m"

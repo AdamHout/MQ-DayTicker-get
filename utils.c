@@ -4,6 +4,8 @@
  * ----------------------------------------------------------------------------------------------
  * 10/17/23   A. Hout       Original source
  * ----------------------------------------------------------------------------------------------
+ * 10/23/23   A. Hout       Add escape sequence to hide the cursor
+ * ----------------------------------------------------------------------------------------------
 */
 
 #include <stdio.h>
@@ -18,6 +20,7 @@
 void dspHdr(void){
    printf(ESC CSI CLS);                                                    //Clear the screen 
    printf(ESC CSI HME);                                                    //Set cursor to line 1; column 1
+   printf(ESC CSI DEC);                                                    //Hide the cursor
    puts("Time     Indice Open     High     Low      Close    Change   %Change");  
    puts("--------------------------------------------------------------------"); 
 }
